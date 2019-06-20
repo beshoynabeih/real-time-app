@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <!-- FirebaseUI -->
+    <script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+
+</head>
+
+<body>
+    <input type="text" name="email" id="email">
+    <input type="text" name="password" id="password">
+    <input type="button" value="Login" name="login" id="login" onclick="signIn()">
+    <input type="button" value="Logout" name="logout" id="logout" onclick="logout()">
+    <input type="button" value="Sign up" name="sign-up" id="sign-up" onclick="signUp()">
+
+    <br></br>
+    <pre id="userdata"></pre>
+
+    <input name="title" id="title" type="text">
+    <input name="author" id="author" type="text">
+    <input name="url" id="url" type="text">
+
+    <input type="button" value="insert" onclick="insert(event)" id="insert">
+    <input type="button" value="update" id="update" onclick="update(event)">
+    <input type="button" value="delete" id="delete" onclick="delete_f(event)">
+
+
+    <br>
+    <br>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>url</th>
+
+            </tr>
+        </thead>
+        <tbody id="books">
+            <tr id="loader">
+                <td colspan="4">
+                    <p style="margin:0">Loading data...</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <h1 id="books-count"></h1>
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/3.7.3/firebase.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#config-web-app -->
+
+    <script>
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyDZneWfjSl2PRIYChXZVhshgLK9gwndw2Y",
+            authDomain: "vuejs-realtime-app-14477.firebaseapp.com",
+            databaseURL: "https://vuejs-realtime-app-14477.firebaseio.com",
+            projectId: "vuejs-realtime-app-14477",
+            storageBucket: "vuejs-realtime-app-14477.appspot.com",
+            messagingSenderId: "605510140734",
+            appId: "1:605510140734:web:593045064f14aa9b"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        // console.log(firebase.database());
+        // var userdata = document.getElementById('userdata');
+        // var dbref = firebase.database().ref().child("my name");
+        // dbref.on('value', snap=> userdata.innerText = snap.val());
+
+        firebase.auth().onAuthStateChanged(function (user) {
+            if (user) {
+                console.log(user);
+                document.getElementById('login').style.display = "none";
+                document.getElementById('sign-up').style.display = "none";
+
+            } else {
+                document.getElementById('login').style.display = "inline";
+                document.getElementById('sign-up').style.display = "inline";
+                console.log("no user is logged in")
+            }
+        });
+        function signUp() {
+            email = document.getElementById('email').value;
+            password = document.getElementById('password').value;
+
+            const auth = firebase.auth();
+            const con = auth.createUserWithEmailAndPassword(email, password);
+            con.catch(e => {
+                console.log(e.code);
+                console.log(e.message);
+            });
+
+        }
+        function signIn() {
+            email = document.getElementById('email').value;
+            password = document.getElementById('password').value;
+            firebase.auth().signInWithEmailAndPassword(email, password).catch(function(error){
+                console.log(error.message);
+            });
+        }
+        function logout(){
+            firebase.auth().signOut().then(function(){
+
+            }).catch(function(error){
+
+            });
+        }
+        function readData() {
+            var books = firebase.database().ref().child('books/');
+            books.on('value', snap => {
+                var table = document.getElementById('books');
+                table.innerHTML = "";
+                var index = 1;
+                snap.forEach(function (snapChild) {
+                    table.innerHTML += "<tr><td>" + index + "</td><td>" + snapChild.val().title + "</td><td>" + snapChild.val().author + "</td><td>" + snapChild.val().url + "</td></tr>";
+                    index++;
+                })
+                document.getElementById('books-count').innerText = "Books Count: " + (index - 1);
+            });
+        }
+        readData();
+
+
+        function insert(e) {
+            var title = document.getElementById('title').value;
+            var author = document.getElementById('author').value;
+            var url = document.getElementById('url').value;
+            // firebase.database().ref().child('name').set("asdasd");
+            firebase.database().ref().child('books/').push().set({
+                title: title,
+                'author': author,
+                'url': url
+            });
+            console.log('inserted');
+        }
+        // insert('e');
+
+        // function update(e){
+        //     var name = document.getElementById('name').value;
+        //     firebase.database().ref().update({name: name})
+        // }
+        // function delete_f(e){
+        //     var name = document.getElementById('name').value;
+        //     firebase.database().ref().child("name").remove();
+        // }
+    </script>
+</body>
+
+</html>
